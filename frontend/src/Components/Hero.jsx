@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-import { API_URL } from "../../config";
+import { API_URL } from "../config";
 
 function Hero() {
   const { t, i18n } = useTranslation();

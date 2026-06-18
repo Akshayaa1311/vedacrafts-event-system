@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 
-import { API_URL } from "../../config";
+import { API_URL } from "../config";
 
 // ── Constants outside component — never redefined on re-render ───────────────
 const INPUT_CLS =

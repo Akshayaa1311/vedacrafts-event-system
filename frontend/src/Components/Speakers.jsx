@@ -3,7 +3,7 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { API_URL } from "../../config";
+import { API_URL } from "../config";
 
 function Speakers() {
   const { t, i18n } = useTranslation();

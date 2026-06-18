@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
-import { API_URL } from "../../config";
+import { API_URL } from "../config";
 
 function StickyRegisterBar() {
   const { t } = useTranslation();
