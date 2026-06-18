@@ -18,17 +18,13 @@ const nodemailer = require("nodemailer");
 let otpStore = {};
 
 const transporter = nodemailer.createTransport({
-   host: "smtp.gmail.com",
-  port: 587,
+   host: "smtp.resend.com",
+  port: 465,
   secure: true,  // true for port 465
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: "resend",
+    pass: process.env.RESEND_API_KEY,
   },
-  connectionTimeout: 20000, // 10 seconds timeout
-  tls: {
-    rejectUnauthorized: false // Helps prevent connection drops on Render
-  }
 });
 
 transporter.verify((error, success) => {
