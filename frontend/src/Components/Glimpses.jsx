@@ -3,6 +3,8 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { API_URL } from "../../config";
+
 function Glimpses() {
   const { t } = useTranslation();
   const [images, setImages] = useState([]);
@@ -20,7 +22,7 @@ function Glimpses() {
 
   const fetchImages = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/glimpses");
+      const res = await axios.get(`${API_URL}/glimpses`);
       setImages(res.data.map((row) => row[1]));
     } catch (err) {
       console.log(err);

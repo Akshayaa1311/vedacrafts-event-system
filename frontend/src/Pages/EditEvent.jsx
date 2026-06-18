@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../Components/AdminSidebar";
 
+import { API_URL } from "../config";
+
 function EditEvent() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -114,10 +116,10 @@ function EditEvent() {
       formData.append("speakersdetailsTa", JSON.stringify(speakersTa));
 
       await axios.put(
-        `http://localhost:5000/events/${id}/edit`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+  `${API_URL}/events/${id}/edit`,
+  formData,
+  { headers: { "Content-Type": "multipart/form-data" } }
+);
 
       alert("Event Updated Successfully 🚀");
       navigate(`/edit-event/${id}`);
@@ -135,7 +137,7 @@ function EditEvent() {
 
   const fetchEvent = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/events");
+      const res = await axios.get(`${API_URL}/events`);
 
       const selectedEvent = res.data.find(
         (row) => String(row[0]) === String(id)

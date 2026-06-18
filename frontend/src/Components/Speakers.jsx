@@ -3,6 +3,8 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { API_URL } from "../../config";
+
 function Speakers() {
   const { t, i18n } = useTranslation();
 
@@ -25,7 +27,7 @@ function Speakers() {
 
   const fetchSpeakers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/events");
+      const res = await axios.get(`${API_URL}/events`);
       const rows = res.data;
       const latest = rows[rows.length - 1];
       const speakerData = JSON.parse(latest[13] || "[]");

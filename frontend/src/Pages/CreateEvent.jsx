@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../Components/AdminSidebar";
 
+import { API_URL } from "../config";
+
 function CreateEvent() {
   const navigate = useNavigate();
 
@@ -123,9 +125,9 @@ function CreateEvent() {
         formData.append("glimpses", image);
       });
 
-      await axios.post("http://localhost:5000/events", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axios.post(`${API_URL}/events`, formData, {
+  headers: { "Content-Type": "multipart/form-data" },
+});
 
       alert(`Event ${statusType} successfully 🚀`);
       navigate("/events");

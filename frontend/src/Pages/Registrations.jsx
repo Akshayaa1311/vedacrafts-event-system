@@ -2,6 +2,8 @@ import AdminSidebar from "../Components/AdminSidebar";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+import { API_URL } from "../config";
+
 function Registrations() {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,7 +15,7 @@ function Registrations() {
 
   const fetchRegistrations = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/registrations");
+      const res = await axios.get(`${API_URL}/registrations`);
       setRegistrations(res.data.slice(1));
     } catch (err) {
       console.log(err);

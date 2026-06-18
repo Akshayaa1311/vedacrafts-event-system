@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
+import { API_URL } from "../../config";
+
 function CTA() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ function CTA() {
 
   const fetchEvent = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/events");
+      const res = await axios.get(`${API_URL}/events`);
       const rows = res.data;
       if (rows.length > 0) {
         const latest = rows[rows.length - 1];

@@ -2,6 +2,8 @@ import AdminSidebar from "../Components/AdminSidebar";
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
+import { API_URL } from "../config";
+
 import {
   BarChart,
   Bar,
@@ -23,7 +25,7 @@ function Analytics() {
 
   const fetchRegistrations = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/registrations");
+      const res = await axios.get(`${API_URL}/registrations`);
       setRegistrations(res.data.slice(1));
     } catch (err) {
       console.log(err);
@@ -32,7 +34,7 @@ function Analytics() {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/events?t=" + Date.now());
+      const res = await axios.get(`${API_URL}/events?t=${Date.now()}`);
       setEvents(res.data);
     } catch (err) {
       console.log(err);

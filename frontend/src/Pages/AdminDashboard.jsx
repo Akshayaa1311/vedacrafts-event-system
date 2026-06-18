@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
+import { API_URL } from "../config";
+
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ useEffect(() => {
 const fetchEvents = async () => {
   try {
     const res = await axios.get(
-      "http://localhost:5000/events?t=" + Date.now()
+      `${API_URL}/events?t=${Date.now()}`
     );
 
     setEvents(res.data);
@@ -29,7 +31,7 @@ const fetchEvents = async () => {
 const fetchRegistrations = async () => {
   try {
     const res = await axios.get(
-      "http://localhost:5000/registrations"
+      `${API_URL}/registrations`
     );
 
     setRegistrations(res.data.slice(1));

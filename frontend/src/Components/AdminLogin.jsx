@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 
+import { API_URL } from "../../config";
+
 // ── Constants outside component — never redefined on re-render ───────────────
 const INPUT_CLS =
   "w-full px-5 py-4 rounded-2xl border border-[#e3d5bd] bg-white outline-none focus:ring-2 focus:ring-[#2f6a28] text-[#3a2c1e] placeholder-[#bba98a] transition";
@@ -72,7 +74,7 @@ function AdminLogin() {
     }
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/admin-login", { email, password });
+      const res = await axios.post(`${API_URL}/admin-login`, { email, password });
       if (res.data.success) {
         localStorage.setItem("adminLoggedIn", "true");
         navigate("/dashboard");
@@ -93,7 +95,7 @@ function AdminLogin() {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/admin/forgot-password", { email: forgotEmail });
+      await axios.post(`${API_URL}/admin/forgot-password`, { email: forgotEmail });
       setStep("enterOtp");
     } catch (err) {
       setError(err.response?.data?.error || "Email not found. Please try again.");
@@ -119,7 +121,7 @@ function AdminLogin() {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/admin/reset-password", {
+      await axios.post(`${API_URL}/admin/reset-password`, {
         email: forgotEmail,
         otp,
         newPassword,

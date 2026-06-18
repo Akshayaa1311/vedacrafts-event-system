@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
+import { API_URL } from "../../config";
+
 function RegistrationPage() {
   const { t, i18n } = useTranslation();
   const [event, setEvent] = useState(null);
@@ -13,7 +15,7 @@ function RegistrationPage() {
 
   const fetchEvent = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/events");
+      const res = await axios.get(`${API_URL}/events`);
       const rows = res.data;
 
       if (rows.length > 0) {
@@ -67,7 +69,7 @@ function RegistrationPage() {
     if (!designation || designation === "Designation *") { alert("Please enter your designation"); return; }
 
     try {
-      await axios.post("http://localhost:5000/add-event", {
+      await axios.post(`${API_URL}/add-event`, {
         name, phone, email, district, businessName,
         designation, category, stage, lookingFor,
         eventId: event?.eventId,

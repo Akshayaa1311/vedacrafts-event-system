@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+import { API_URL } from "../config";
+
 function Events() {
   const navigate = useNavigate();
 
@@ -15,8 +17,8 @@ function Events() {
     setLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:5000/events?t=${Date.now()}`
-      );
+  `${API_URL}/events?t=${Date.now()}`
+);
 
       const today = new Date();
 
@@ -27,10 +29,9 @@ function Events() {
 
         if (status === "published" && deadline < today) {
           newEvent[15] = "closed";
-          axios
-            .put(`http://localhost:5000/events/${newEvent[0]}/status`, {
-              status: "closed",
-            })
+          axios.put(`${API_URL}/events/${newEvent[0]}/status`, {
+  status: "closed",
+})
             .catch((err) => console.log("Auto-close failed:", err));
         } else {
           newEvent[15] = status;
@@ -63,9 +64,9 @@ function Events() {
     setActionLoading(true);
     try {
       await axios.put(
-        `http://localhost:5000/events/${eventId}/status`,
-        { status: "published" }
-      );
+  `${API_URL}/events/${eventId}/status`,
+  { status: "published" }
+);
       await fetchEvents();
     } catch (err) {
       console.log(err);
@@ -77,9 +78,9 @@ function Events() {
   const handleClose = async (eventId) => {
     try {
       await axios.put(
-        `http://localhost:5000/events/${eventId}/status`,
-        { status: "closed" }
-      );
+  `${API_URL}/events/${eventId}/status`,
+  { status: "closed" }
+);
       await fetchEvents();
     } catch (err) {
       console.log(err);

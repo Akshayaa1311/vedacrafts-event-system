@@ -2,6 +2,8 @@ import AdminSidebar from "../Components/AdminSidebar";
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 
+import { API_URL } from "../config";
+
 const INPUT_CLS = "w-full mt-2 border border-gray-300 rounded-2xl px-4 md:px-5 py-4 md:py-5 text-gray-800 bg-white outline-none focus:ring-2 focus:ring-[#245c1f] transition";
 const INPUT_DISABLED = "w-full mt-2 border border-gray-200 rounded-2xl px-4 md:px-5 py-4 md:py-5 text-gray-400 bg-gray-100 outline-none cursor-not-allowed";
 
@@ -31,7 +33,7 @@ function Settings() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const res = await axios.get("http://localhost:5000/admin/settings");
+      const res = await axios.get(`${API_URL}/admin/settings`);
       setFullName(res.data.fullName || "");
       setEmail(res.data.email || "");
       setPhone(res.data.phone || "");
@@ -51,7 +53,7 @@ function Settings() {
     setSaving(true);
     setProfileMsg({ type: "", text: "" });
     try {
-      await axios.put("http://localhost:5000/admin/settings", { fullName, email, phone, notifications });
+      await axios.put(`${API_URL}/admin/settings`, { fullName, email, phone, notifications });
       setProfileMsg({ type: "success", text: "Profile saved. Login email updated successfully." });
     } catch {
       setProfileMsg({ type: "error", text: "Failed to save settings. Please try again." });
@@ -76,7 +78,7 @@ function Settings() {
     }
     setChangingPw(true);
     try {
-      await axios.put("http://localhost:5000/admin/change-password", { currentPassword, newPassword });
+      await axios.put(`${API_URL}/admin/change-password`, { currentPassword, newPassword });
       setPasswordMsg({ type: "success", text: "Password changed successfully." });
       setCurrentPassword("");
       setNewPassword("");
