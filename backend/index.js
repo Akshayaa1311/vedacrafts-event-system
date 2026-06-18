@@ -13,27 +13,13 @@ const multer = require("multer");
 const streamifier = require("streamifier");
 const cloudinary = require("./config/cloudinary");
 
-const nodemailer = require("nodemailer");
+//const nodemailer = require("nodemailer");
+
+const { Resend } = require("resend");
 
 let otpStore = {};
 
-const transporter = nodemailer.createTransport({
-   host: "smtp.resend.com",
-  port: 465,
-  secure: true,  // true for port 465
-  auth: {
-    user: "resend",
-    pass: process.env.RESEND_API_KEY,
-  },
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("❌ Email transporter error:", error.message);
-  } else {
-    console.log("✅ Email transporter ready");
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const app = express();
 
@@ -417,8 +403,8 @@ app.post("/add-event", async (req, res) => {
       },
     });
 
-    await transporter.sendMail({
-      from: `"Vedacrafts Team" <onboarding@resend.dev>`,
+  await resend.emails.send({
+    from: "onboarding@resend.dev",
       to: email,
       subject: "VedaCrafts Registration Successful",
       html: `
@@ -435,12 +421,10 @@ app.post("/add-event", async (req, res) => {
         <p>Team VedaCrafts</p>
       `,
     });
-
-    res.send("Registration saved 🚀");
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error saving registration");
-  }
+    console.log("✅ Registration email sent successfully via Resend API");
+} catch (emailError) {
+  console.error("❌ Failed to send registration email:", emailError);
+}
 });
 
 // ─── GET /registrations ───────────────────────────────────────────────────────
@@ -654,23 +638,20 @@ app.post("/admin/forgot-password", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    await transporter.sendMail({
-      from: `"VedaCrafts" <onboarding@resend.dev>`,
-      to: email,
-      subject: "Password Reset OTP",
+    await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: adminEmail, // Make sure this matches your personal Resend account email for testing!
+    subject: "Admin Password Reset OTP",
       html: `
         <h2>Your OTP Code</h2>
         <h1>${otp}</h1>
         <p>Valid for 5 minutes</p>
       `,
     });
-
-    res.json({ success: true, message: "OTP sent" });
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Failed to send OTP" });
-  }
+    console.log("✅ OTP email sent successfully via Resend API");
+} catch (emailError) {
+  console.error("❌ Failed to send OTP email:", emailError);
+}
 });
 
 app.post("/admin/reset-password", async (req, res) => {
