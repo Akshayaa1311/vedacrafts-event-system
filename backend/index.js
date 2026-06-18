@@ -15,11 +15,19 @@ const nodemailer = require("nodemailer");
 let otpStore = {};
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("❌ Email transporter error:", error.message);
+  } else {
+    console.log("✅ Email transporter ready");
+  }
 });
 
 const app = express();
