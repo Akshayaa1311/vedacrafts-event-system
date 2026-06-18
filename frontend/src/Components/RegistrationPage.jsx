@@ -65,8 +65,8 @@ function RegistrationPage() {
     if (!name.trim()) { alert("Please enter your name"); return; }
     if (!/^\d{10}$/.test(phone)) { alert("Phone number must be exactly 10 digits"); return; }
     if (!/\S+@\S+\.\S+/.test(email)) { alert("Please enter a valid email"); return; }
-    if (!district || district === "Select District *") { alert("Please select your district"); return; }
-    if (!designation || designation === "Designation *") { alert("Please enter your designation"); return; }
+    if (!district || district === `${t("selectdist")} *` || district === "Select District *") { alert("Please select your district"); return; }
+    if (!designation.trim()) { alert("Please enter your designation"); return; }
 
     try {
       await axios.post(`${API_URL}/add-event`, {
@@ -77,7 +77,18 @@ function RegistrationPage() {
       });
 
       alert("Registration Successful 🎉");
-      setName(""); setPhone(""); setEmail("");
+      
+      // ✅ COMPLETELY RESET ALL FORM STATES FOR THE NEXT VIEW
+      setName("");
+      setPhone("");
+      setEmail("");
+      setDistrict(`${t("selectdist")} *`);
+      setBusinessName("");
+      setDesignation("");
+      setCategory(t("businesscategory"));
+      setStage(t("businessstage"));
+      setLookingFor([]);
+
     } catch (error) {
       console.log(error);
       alert("Registration Failed ❌");
