@@ -418,7 +418,7 @@ app.post("/add-event", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Vedacrafts Team" <${process.env.EMAIL_USER}>`,
+      from: `"Vedacrafts Team" <onboarding@resend.dev>`,
       to: email,
       subject: "VedaCrafts Registration Successful",
       html: `
@@ -655,7 +655,7 @@ app.post("/admin/forgot-password", async (req, res) => {
     };
 
     await transporter.sendMail({
-      from: `"VedaCrafts" <${process.env.EMAIL_USER}>`,
+      from: `"VedaCrafts" <onboarding@resend.dev>`,
       to: email,
       subject: "Password Reset OTP",
       html: `
