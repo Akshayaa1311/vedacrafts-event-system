@@ -390,6 +390,7 @@ app.post("/add-event", async (req, res) => {
   } = req.body;
 
   try {
+    // 1. Append data to Google Sheets
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "Registrations!A:K",
@@ -403,29 +404,41 @@ app.post("/add-event", async (req, res) => {
       },
     });
 
-  await resend.emails.send({
-    from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
-      to: email,
-      subject: "VedaCrafts Registration Successful",
-      html: `
-        <h2>Registration Confirmed 🎉</h2>
-        <p>Hello ${name},</p>
-        <p>Your registration has been confirmed.</p>
-        <hr/>
-        <p><strong>Event:</strong> ${eventTitle}</p>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>District:</strong> ${district}</p>
-        <br/>
-        <p>Thank you for registering with VedaCrafts.</p>
-        <p>Team VedaCrafts</p>
-      `,
-    });
-    console.log("✅ Registration email sent successfully via Resend API");
-} catch (emailError) {
-  console.error("❌ Failed to send registration email:", emailError);
-}
+    // 2. Send Email Notification via Resend
+    try {
+      await resend.emails.send({
+        from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
+        to: email,
+        subject: "VedaCrafts Registration Successful",
+        html: `
+          <h2>Registration Confirmed 🎉</h2>
+          <p>Hello ${name},</p>
+          <p>Your registration has been confirmed.</p>
+          <hr/>
+          <p><strong>Event:</strong> ${eventTitle}</p>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>District:</strong> ${district}</p>
+          <br/>
+          <p>Thank you for registering with VedaCrafts.</p>
+          <p>Team VedaCrafts</p>
+        `,
+      });
+      console.log("✅ Registration email sent successfully via Resend API");
+    } catch (emailError) {
+      console.error("❌ Failed to send registration email:", emailError);
+      // We don't block the frontend even if the email delivery fails
+    }
+
+    // ✅ FIXED: Explicitly send a response back so the frontend pops up the success message!
+    return res.status(200).json({ success: true, message: "Registration successful" });
+
+  } catch (err) {
+    console.error("❌ Complete registration workflow crash:", err);
+    return res.status(500).json({ error: "Registration Failed" });
+  }
 });
+
 
 // ─── GET /registrations ───────────────────────────────────────────────────────
 app.get("/registrations", async (req, res) => {
