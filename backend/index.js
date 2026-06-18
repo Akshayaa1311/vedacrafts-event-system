@@ -13,13 +13,13 @@ const multer = require("multer");
 const streamifier = require("streamifier");
 const cloudinary = require("./config/cloudinary");
 
-//const nodemailer = require("nodemailer");
-
+// ─── MAKE SURE THIS EXACT BLOCK IS HERE ──────────────────────────────────────
 const { Resend } = require("resend");
 
 let otpStore = {};
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+// ──────────────────────────────────────────────────────────────────────────────
 
 const app = express();
 
@@ -614,10 +614,12 @@ app.get("/generate-password", async (req, res) => {
 
 });
 
+// ─── REPLACE WITH THIS ────────────────────────────────────────────────────────
 app.post("/admin/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
+    // Verify if email exists in Google Sheets
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "AdminAuth!A2:B2",
@@ -630,7 +632,7 @@ app.post("/admin/forgot-password", async (req, res) => {
       return res.status(400).json({ error: "Email not found" });
     }
 
-    // generate OTP
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
     otpStore[email] = {
@@ -638,20 +640,27 @@ app.post("/admin/forgot-password", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
+  // Send using official Resend SDK over secure port 443
     await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: email, // Make sure this matches your personal Resend account email for testing!
-    subject: "Admin Password Reset OTP",
+      from: '"Vedacrafts Official" <onboarding@resend.dev>',
+      to: email, 
+      subject: "Admin Password Reset OTP",
       html: `
         <h2>Your OTP Code</h2>
         <h1>${otp}</h1>
         <p>Valid for 5 minutes</p>
       `,
     });
+    
     console.log("✅ OTP email sent successfully via Resend API");
-} catch (emailError) {
-  console.error("❌ Failed to send OTP email:", emailError);
-}
+    
+    // ⚠️ THIS CRITICAL LINE UNFREEZES YOUR FRONTEND AND OPENS THE OTP INPUTS!
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+
+  } catch (emailError) {
+    console.error("❌ Failed to send OTP email:", emailError);
+    return res.status(500).json({ error: "Failed to send OTP email" });
+  }
 });
 
 app.post("/admin/reset-password", async (req, res) => {
