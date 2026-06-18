@@ -642,7 +642,7 @@ app.post("/admin/forgot-password", async (req, res) => {
 
   // Send using official Resend SDK over secure port 443
     await resend.emails.send({
-      from: '"Vedacrafts Official" <onboarding@resend.dev>',
+      from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
       to: email, 
       subject: "Admin Password Reset OTP",
       html: `
