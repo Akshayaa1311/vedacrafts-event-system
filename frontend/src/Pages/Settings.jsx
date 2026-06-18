@@ -21,7 +21,6 @@ function Settings() {
   const [fullName, setFullName]               = useState("");
   const [email, setEmail]                     = useState("");
   const [phone, setPhone]                     = useState("");
-  const [notifications, setNotifications]     = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword]         = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,7 +36,6 @@ function Settings() {
       setFullName(res.data.fullName || "");
       setEmail(res.data.email || "");
       setPhone(res.data.phone || "");
-      setNotifications(res.data.notifications || false);
     } catch (err) {
       console.log(err);
     }
@@ -53,7 +51,8 @@ function Settings() {
     setSaving(true);
     setProfileMsg({ type: "", text: "" });
     try {
-      await axios.put(`${API_URL}/admin/settings`, { fullName, email, phone, notifications });
+      // ✅ FIXED: Explicitly passing false to keep the backend from breaking
+      await axios.put(`${API_URL}/admin/settings`, { fullName, email, phone, notifications: false });
       setProfileMsg({ type: "success", text: "Profile saved. Login email updated successfully." });
     } catch {
       setProfileMsg({ type: "error", text: "Failed to save settings. Please try again." });
@@ -107,7 +106,6 @@ function Settings() {
           <h2 className="text-lg md:text-xl font-bold text-[#245c1f] mb-5 md:mb-6">Admin Profile</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-
             <div>
               <label className="text-sm text-gray-700">Full Name</label>
               <input
@@ -157,7 +155,6 @@ function Settings() {
                 className={INPUT_DISABLED}
               />
             </div>
-
           </div>
 
           <Banner msg={profileMsg} />
@@ -178,7 +175,6 @@ function Settings() {
           <h2 className="text-lg md:text-xl font-bold text-[#245c1f] mb-5 md:mb-6">Change Password</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-
             <div>
               <label className="text-sm text-gray-700">Current Password</label>
               <input
@@ -213,7 +209,6 @@ function Settings() {
                 className={INPUT_CLS}
               />
             </div>
-
           </div>
 
           <Banner msg={passwordMsg} />
@@ -227,35 +222,6 @@ function Settings() {
               {changingPw ? "Changing…" : "Change Password"}
             </button>
           </div>
-        </div>
-
-        {/* ── Notifications ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl p-5 md:p-8 mb-6 md:mb-8">
-          <h2 className="text-lg md:text-xl font-bold text-[#245c1f] mb-5 md:mb-6">Notifications</h2>
-
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-semibold text-gray-800 text-sm">Email Notifications</p>
-              <p className="text-gray-400 text-sm mt-0.5">Receive updates about registrations and events.</p>
-            </div>
-            <div
-              onClick={() => setNotifications((v) => !v)}
-              className={`relative w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 shrink-0 ${notifications ? "bg-[#245c1f]" : "bg-gray-300"}`}
-            >
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${notifications ? "translate-x-7" : "translate-x-1"}`} />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Save All ──────────────────────────────────────────────────── */}
-        <div className="flex justify-end">
-          <button
-            onClick={saveSettings}
-            disabled={saving}
-            className="w-full sm:w-auto bg-[#f5c518] hover:bg-[#e0b315] text-black font-semibold px-10 py-2.5 rounded-xl transition disabled:opacity-60"
-          >
-            {saving ? "Saving…" : "Save All Changes"}
-          </button>
         </div>
 
       </div>

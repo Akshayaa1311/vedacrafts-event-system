@@ -470,8 +470,6 @@ app.get("/admin/settings", async (req, res) => {
       fullName: row[0] || "",
       email: row[1] || "",
       phone: row[2] || "",
-      notifications:
-        String(row[3]).toLowerCase() === "true",
     });
   } catch (err) {
     console.log(err);
@@ -481,7 +479,7 @@ app.get("/admin/settings", async (req, res) => {
 
 app.put("/admin/settings", async (req, res) => {
   try {
-    const { fullName, email, phone, notifications } = req.body;
+    const { fullName, email, phone } = req.body;
 
     // 1. Save settings
     await sheets.spreadsheets.values.update({
@@ -489,7 +487,7 @@ app.put("/admin/settings", async (req, res) => {
       range: "AdminSettings!A2:D2",
       valueInputOption: "RAW",
       requestBody: {
-        values: [[fullName, email, phone, notifications]],
+        values: [[fullName, email, phone ]],
       },
     });
 
