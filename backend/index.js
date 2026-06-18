@@ -640,7 +640,7 @@ app.post("/admin/forgot-password", async (req, res) => {
 
     await resend.emails.send({
     from: "onboarding@resend.dev",
-    to: adminEmail, // Make sure this matches your personal Resend account email for testing!
+    to: email, // Make sure this matches your personal Resend account email for testing!
     subject: "Admin Password Reset OTP",
       html: `
         <h2>Your OTP Code</h2>
