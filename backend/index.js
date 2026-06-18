@@ -404,7 +404,7 @@ app.post("/add-event", async (req, res) => {
     });
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
       to: email,
       subject: "VedaCrafts Registration Successful",
       html: `
