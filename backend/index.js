@@ -19,7 +19,7 @@ const nodemailer = require("nodemailer");
 let otpStore = {};
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.zoho.in",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
   auth: {
