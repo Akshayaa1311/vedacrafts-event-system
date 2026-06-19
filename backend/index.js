@@ -19,7 +19,10 @@ const nodemailer = require("nodemailer");
 let otpStore = {};
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // TLS-க்கு false இருக்கணும், Render-ல இதான் ஒர்க் ஆகும்
+  requireTLS: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
