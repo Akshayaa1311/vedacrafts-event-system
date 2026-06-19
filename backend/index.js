@@ -13,21 +13,12 @@ const multer = require("multer");
 const streamifier = require("streamifier");
 const cloudinary = require("./config/cloudinary");
 
-// ─── NODEMAILER CONFIGURATION (REPLACED RESEND) ──────────────────────────────
-const nodemailer = require("nodemailer");
+// ─── MAKE SURE THIS EXACT BLOCK IS HERE ──────────────────────────────────────
+const { Resend } = require("resend");
 
 let otpStore = {};
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS-க்கு false இருக்கணும், Render-ல இதான் ஒர்க் ஆகும்
-  requireTLS: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 // ──────────────────────────────────────────────────────────────────────────────
 
 const app = express();
@@ -156,19 +147,26 @@ app.put(
       }
 
       // ── Parse & merge speaker details ──────────────────────────────────────
+      // Parse English speaker details (contains nameEn, designationEn, bioEn)
       const parsedSpeakersEn = JSON.parse(speakersdetailsEn || "[]");
+
+      // Parse Tamil speaker details (contains nameTa, designationTa, bioTa)
       const parsedSpeakersTa = JSON.parse(speakersdetailsTa || "[]");
 
+      // Merge Tamil fields into the English objects & assign uploaded images
       parsedSpeakersEn.forEach((speaker, index) => {
+        // Assign uploaded image if available
         if (speakerImageUrls[index]) {
           speaker.image = speakerImageUrls[index];
         } else if (data[rowIndex][13]) {
+          // Keep existing image from sheet if no new image uploaded
           try {
             const existing = JSON.parse(data[rowIndex][13] || "[]");
             if (existing[index]?.image) speaker.image = existing[index].image;
           } catch (_) {}
         }
 
+        // Merge Tamil fields
         if (parsedSpeakersTa[index]) {
           speaker.nameTa        = parsedSpeakersTa[index].nameTa        || "";
           speaker.designationTa = parsedSpeakersTa[index].designationTa || "";
@@ -196,8 +194,8 @@ app.put(
             deadline,
             descriptionEn,
             descriptionTa,
-            JSON.stringify(parsedSpeakersEn),
-            JSON.stringify(parsedSpeakersTa),
+            JSON.stringify(parsedSpeakersEn),   // col 13 (index 13): Speakers details_En — merged object with both EN + TA fields
+            JSON.stringify(parsedSpeakersTa),   // col 14 (index 14): Speakers details_Ta — Tamil-only fields for reference
             status || data[rowIndex][15],
             bannerUrl,
           ]],
@@ -233,6 +231,7 @@ app.post(
         status,
       } = req.body;
 
+      // ── Duplicate check FIRST — before any uploads ─────────────────────────
       const rows = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: "Events!A:Q",
@@ -245,6 +244,7 @@ app.post(
         return res.status(400).json({ error: "Event already exists" });
       }
 
+      // ── Banner upload ──────────────────────────────────────────────────────
       let bannerUrl = "";
       if (req.files?.banner?.[0]) {
         const result = await new Promise((resolve, reject) => {
@@ -257,6 +257,7 @@ app.post(
         bannerUrl = result.secure_url;
       }
 
+      // ── Speaker image uploads ──────────────────────────────────────────────
       const speakerImageUrls = [];
       if (req.files?.speakerImages) {
         for (const file of req.files.speakerImages) {
@@ -271,12 +272,19 @@ app.post(
         }
       }
 
+      // ── Parse & merge speaker details ──────────────────────────────────────
+      // Parse English speaker details (contains nameEn, designationEn, bioEn)
       const parsedSpeakersEn = JSON.parse(speakersdetailsEn || "[]");
+
+      // Parse Tamil speaker details (contains nameTa, designationTa, bioTa)
       const parsedSpeakersTa = JSON.parse(speakersdetailsTa || "[]");
 
+      // Merge Tamil fields into the English objects & assign uploaded images
       parsedSpeakersEn.forEach((speaker, index) => {
+        // Assign uploaded image
         if (speakerImageUrls[index]) speaker.image = speakerImageUrls[index];
 
+        // Merge Tamil fields
         if (parsedSpeakersTa[index]) {
           speaker.nameTa        = parsedSpeakersTa[index].nameTa        || "";
           speaker.designationTa = parsedSpeakersTa[index].designationTa || "";
@@ -284,6 +292,7 @@ app.post(
         }
       });
 
+      // ── Glimpse uploads ────────────────────────────────────────────────────
       const glimpseUrls = [];
       if (req.files?.glimpses) {
         for (const file of req.files.glimpses) {
@@ -307,6 +316,7 @@ app.post(
         });
       }
 
+      // ── Write to sheet ─────────────────────────────────────────────────────
       await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: "Events!A:Q",
@@ -326,8 +336,8 @@ app.post(
             deadline,
             descriptionEn,
             descriptionTa,
-            JSON.stringify(parsedSpeakersEn),
-            JSON.stringify(parsedSpeakersTa),
+            JSON.stringify(parsedSpeakersEn),   // col 13 (index 13): Speakers details_En — merged object with both EN + TA fields
+            JSON.stringify(parsedSpeakersTa),   // col 14 (index 14): Speakers details_Ta — Tamil-only fields for reference
             status,
             bannerUrl,
           ]],
@@ -372,7 +382,7 @@ app.get("/events", async (req, res) => {
   }
 });
 
-// ─── POST /add-event (registration) USING NODEMAILER ──────────────────────────
+// ─── POST /add-event (registration) ──────────────────────────────────────────
 app.post("/add-event", async (req, res) => {
   const {
     name, phone, email, district, businessName,
@@ -380,6 +390,7 @@ app.post("/add-event", async (req, res) => {
   } = req.body;
 
   try {
+    // 1. Append data to Google Sheets
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "Registrations!A:K",
@@ -393,10 +404,10 @@ app.post("/add-event", async (req, res) => {
       },
     });
 
-    // Send Email via Nodemailer
+    // 2. Send Email Notification via Resend
     try {
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
+      await resend.emails.send({
+        from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
         to: email,
         subject: "VedaCrafts Registration Successful",
         html: `
@@ -412,14 +423,14 @@ app.post("/add-event", async (req, res) => {
           <p>Thank you for registering with VedaCrafts.</p>
           <p>Team VedaCrafts</p>
         `,
-      };
-
-      await transporter.sendMail(mailOptions);
-      console.log("✅ Registration email sent successfully via Nodemailer");
+      });
+      console.log("✅ Registration email sent successfully via Resend API");
     } catch (emailError) {
       console.error("❌ Failed to send registration email:", emailError);
+      // We don't block the frontend even if the email delivery fails
     }
 
+    // ✅ FIXED: Explicitly send a response back so the frontend pops up the success message!
     return res.status(200).json({ success: true, message: "Registration successful" });
 
   } catch (err) {
@@ -427,6 +438,7 @@ app.post("/add-event", async (req, res) => {
     return res.status(500).json({ error: "Registration Failed" });
   }
 });
+
 
 // ─── GET /registrations ───────────────────────────────────────────────────────
 app.get("/registrations", async (req, res) => {
@@ -455,16 +467,17 @@ app.get("/glimpses", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch glimpses" });
   }
 });
-
 // ADMIN/SETTINGS
 app.get("/admin/settings", async (req, res) => {
   try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "AdminSettings!A2:D2",
-    });
+    const response =
+      await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "AdminSettings!A2:D2",
+      });
 
-    const row = response.data.values?.[0] || [];
+    const row =
+      response.data.values?.[0] || [];
 
     res.json({
       fullName: row[0] || "",
@@ -481,6 +494,7 @@ app.put("/admin/settings", async (req, res) => {
   try {
     const { fullName, email, phone } = req.body;
 
+    // 1. Save settings
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: "AdminSettings!A2:D2",
@@ -490,6 +504,7 @@ app.put("/admin/settings", async (req, res) => {
       },
     });
 
+    // 2. ALSO update AdminAuth email
     const auth = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "AdminAuth!A2:B2",
@@ -502,11 +517,12 @@ app.put("/admin/settings", async (req, res) => {
       range: "AdminAuth!A2:B2",
       valueInputOption: "RAW",
       requestBody: {
-        values: [[email, row[1]]],
+        values: [[email, row[1]]], // keep same password
       },
     });
 
     res.json({ success: true });
+
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -524,6 +540,7 @@ app.put("/admin/change-password", async (req, res) => {
 
     const row = response.data.values?.[0] || [];
 
+    // 🔥 ADD THESE HERE
     console.log("CURRENT:", currentPassword);
     console.log("HASH:", row[1]);
 
@@ -547,6 +564,7 @@ app.put("/admin/change-password", async (req, res) => {
     });
 
     res.json({ success: true });
+
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -558,19 +576,28 @@ app.post("/admin-login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "AdminAuth!A2:B2",
-    });
+    const response =
+      await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "AdminAuth!A2:B2",
+      });
 
-    const row = response.data.values?.[0] || [];
+    const row =
+      response.data.values?.[0] || [];
 
     const savedEmail = row[0];
     const savedPassword = row[1];
 
-    const isMatch = await bcrypt.compare(password, savedPassword);
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        savedPassword
+      );
 
-    if (email === savedEmail && isMatch) {
+    if (
+      email === savedEmail &&
+      isMatch
+    ) {
       return res.json({
         success: true,
       });
@@ -580,6 +607,7 @@ app.post("/admin-login", async (req, res) => {
       success: false,
       message: "Invalid credentials",
     });
+
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -587,15 +615,22 @@ app.post("/admin-login", async (req, res) => {
 });
 
 app.get("/generate-password", async (req, res) => {
-  const hash = await bcrypt.hash("admin123", 10);
+
+  const hash = await bcrypt.hash(
+    "admin123",
+    10
+  );
+
   res.send(hash);
+
 });
 
-// ─── POST /admin/forgot-password USING NODEMAILER ─────────────────────────────
+// ─── REPLACE WITH THIS ────────────────────────────────────────────────────────
 app.post("/admin/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
+    // Verify if email exists in Google Sheets
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "AdminAuth!A2:B2",
@@ -608,6 +643,7 @@ app.post("/admin/forgot-password", async (req, res) => {
       return res.status(400).json({ error: "Email not found" });
     }
 
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
     otpStore[email] = {
@@ -615,9 +651,9 @@ app.post("/admin/forgot-password", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // Send via Nodemailer
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+  // Send using official Resend SDK over secure port 443
+    await resend.emails.send({
+      from: '"Vedacrafts Official (vedacraftsofficial@gmail.com)" <onboarding@resend.dev>',
       to: email, 
       subject: "Admin Password Reset OTP",
       html: `
@@ -625,11 +661,11 @@ app.post("/admin/forgot-password", async (req, res) => {
         <h1>${otp}</h1>
         <p>Valid for 5 minutes</p>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ OTP email sent successfully via Nodemailer");
+    });
     
+    console.log("✅ OTP email sent successfully via Resend API");
+    
+    // ⚠️ THIS CRITICAL LINE UNFREEZES YOUR FRONTEND AND OPENS THE OTP INPUTS!
     return res.status(200).json({ success: true, message: "OTP sent successfully" });
 
   } catch (emailError) {
@@ -657,8 +693,8 @@ app.post("/admin/reset-password", async (req, res) => {
     }
 
     if (!email || !otp || !newPassword) {
-      return res.status(400).json({ error: "Missing fields" });
-    }
+  return res.status(400).json({ error: "Missing fields" });
+}
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -681,6 +717,7 @@ app.post("/admin/reset-password", async (req, res) => {
     delete otpStore[email];
 
     res.json({ success: true, message: "Password reset successful" });
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Reset failed" });
