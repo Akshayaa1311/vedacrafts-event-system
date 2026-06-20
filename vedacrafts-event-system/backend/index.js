@@ -371,6 +371,68 @@ app.get("/events", async (req, res) => {
   }
 });
 
+// ─── DELETE /events/:id ────────────────────────────────────────────────────────
+app.delete("/events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get sheet metadata to find the actual sheetId (gid) for "Events"
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const eventsSheet = meta.data.sheets.find(
+      (s) => s.properties.title === "Events"
+    );
+
+    if (!eventsSheet) {
+      return res.status(500).json({ error: "Events sheet not found" });
+    }
+
+    const sheetGid = eventsSheet.properties.sheetId;
+
+    // Find the row to delete
+    const rows = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Events!A:Q",
+    });
+
+    const data = rows.data.values || [];
+
+    const rowIndex = data.findIndex(
+      (row) => (row[0] || "").trim() === (id || "").trim()
+    );
+
+    if (rowIndex === -1) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Delete the row using batchUpdate (deleteDimension)
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: sheetGid,
+                dimension: "ROWS",
+                startIndex: rowIndex,
+                endIndex: rowIndex + 1,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    cachedEvents = null;
+    lastFetchTime = 0;
+
+    res.json({ success: true, message: "Event deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
+});
+
 // ─── POST /add-event (registration) ──────────────────────────────────────────
 app.post("/add-event", async (req, res) => {
   const {
