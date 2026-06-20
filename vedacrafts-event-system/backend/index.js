@@ -400,7 +400,7 @@ app.post("/add-event", async (req, res) => {
     // 2. Send Email via Brevo
     try {
       await brevoEmail.sendTransacEmail({
-        sender: { name: "Vedacrafts Official", email: process.env.EMAIL_USER },
+        sender: { name: "Vedacrafts Official", email: "vedacraftsofficial@gmail.com" },
         to: [{ email: email, name: name }],
         subject: "VedaCrafts Registration Successful",
         htmlContent: `
@@ -430,7 +430,31 @@ app.post("/add-event", async (req, res) => {
     return res.status(500).json({ error: "Registration Failed" });
   }
 });
+// --- TEST EMAIL ROUTE ---
+app.get("/test-email", async (req, res) => {
+  try {
 
+    // simple protection
+    if (req.query.key !== "admin123") {
+      return res.status(403).send("Unauthorized");
+    }
+
+    await brevoEmail.sendTransacEmail({
+      sender: {
+        name: "Vedacrafts Official",
+        email: "vedacraftsofficial@gmail.com"
+      },
+      to: [{ email: "your_email@gmail.com" }],
+      subject: "Test Email",
+      htmlContent: "<h1>Hello from Brevo</h1>"
+    });
+
+    res.send("Email sent");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Failed");
+  }
+});
 // ─── GET /registrations ───────────────────────────────────────────────────────
 app.get("/registrations", async (req, res) => {
   try {
