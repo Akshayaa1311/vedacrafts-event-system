@@ -14,12 +14,13 @@ const streamifier = require("streamifier");
 const cloudinary = require("./config/cloudinary");
 
 // ─── BREVO SETUP ──────────────────────────────────────────────────────────────
-const brevo = require("@getbrevo/brevo");
+const { BrevoClient } = require("@getbrevo/brevo");
 
 let otpStore = {};
 
-const brevoEmail = new brevo.TransactionalEmailsApi();
-brevoEmail.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+const brevoClient = new BrevoClient({
+  apiKey: process.env.BREVO_API_KEY,
+});
 // ──────────────────────────────────────────────────────────────────────────────
 
 const app = express();
@@ -394,7 +395,7 @@ app.post("/add-event", async (req, res) => {
 
     // 2. Send Email via Brevo
     try {
-      await brevoEmail.sendTransacEmail({
+      await brevoClient.transactionalEmails.sendTransacEmail({
         sender: { name: "Vedacrafts Official", email: "vedacraftsofficial@gmail.com" },
         to: [{ email: email, name: name }],
         subject: "VedaCrafts Registration Successful",
@@ -425,31 +426,34 @@ app.post("/add-event", async (req, res) => {
     return res.status(500).json({ error: "Registration Failed" });
   }
 });
+
 // --- TEST EMAIL ROUTE ---
 app.get("/test-email", async (req, res) => {
   try {
-
     // simple protection
     if (req.query.key !== "admin123") {
       return res.status(403).send("Unauthorized");
     }
 
-    await brevoEmail.sendTransacEmail({
+    const toEmail = req.query.to || "vedacraftsofficial@gmail.com";
+
+    await brevoClient.transactionalEmails.sendTransacEmail({
       sender: {
         name: "Vedacrafts Official",
         email: "vedacraftsofficial@gmail.com"
       },
-      to: [{ email: "your_email@gmail.com" }],
+      to: [{ email: toEmail }],
       subject: "Test Email",
       htmlContent: "<h1>Hello from Brevo</h1>"
     });
 
-    res.send("Email sent");
+    res.send("Email sent to " + toEmail);
   } catch (err) {
     console.log(err);
     res.status(500).send("Failed");
   }
 });
+
 // ─── GET /registrations ───────────────────────────────────────────────────────
 app.get("/registrations", async (req, res) => {
   try {
@@ -632,8 +636,8 @@ app.post("/admin/forgot-password", async (req, res) => {
     };
 
     // Send OTP via Brevo
-    await brevoEmail.sendTransacEmail({
-      sender: { name: "Vedacrafts Official", email: process.env.EMAIL_USER },
+    await brevoClient.transactionalEmails.sendTransacEmail({
+      sender: { name: "Vedacrafts Official", email: "vedacraftsofficial@gmail.com" },
       to: [{ email: email }],
       subject: "Admin Password Reset OTP",
       htmlContent: `
