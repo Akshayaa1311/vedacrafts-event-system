@@ -33,6 +33,29 @@ const upload = multer({ storage: multer.memoryStorage() });
 let cachedEvents = null;
 let lastFetchTime = 0;
 
+// ─── SLUG HELPER ──────────────────────────────────────────────────────────────
+// Converts an event title into a URL-safe slug, e.g. "Veda Startup Summit 2026!"
+// becomes "veda-startup-summit-2026". Falls back to eventId if title is empty.
+function slugify(text) {
+  return (text || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")   // remove special characters
+    .replace(/\s+/g, "-")           // spaces to hyphens
+    .replace(/-+/g, "-")            // collapse multiple hyphens
+    .replace(/^-|-$/g, "");         // trim leading/trailing hyphens
+}
+
+// Builds a unique slug for an event row, appending a short suffix from the
+// eventId if two events would otherwise share the same slug.
+function buildSlugForRow(row) {
+  const titleEn = row[1] || "";
+  const eventId = row[0] || "";
+  const baseSlug = slugify(titleEn) || slugify(eventId) || eventId;
+  return baseSlug;
+}
+
 // ─── PUT /events/:id/status ───────────────────────────────────────────────────
 app.put("/events/:id/status", async (req, res) => {
   try {
@@ -208,6 +231,65 @@ app.put(
   }
 );
 
+// ─── DELETE /events/:id ────────────────────────────────────────────────────────
+app.delete("/events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const eventsSheet = meta.data.sheets.find(
+      (s) => s.properties.title === "Events"
+    );
+
+    if (!eventsSheet) {
+      return res.status(500).json({ error: "Events sheet not found" });
+    }
+
+    const sheetGid = eventsSheet.properties.sheetId;
+
+    const rows = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Events!A:Q",
+    });
+
+    const data = rows.data.values || [];
+
+    const rowIndex = data.findIndex(
+      (row) => (row[0] || "").trim() === (id || "").trim()
+    );
+
+    if (rowIndex === -1) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: sheetGid,
+                dimension: "ROWS",
+                startIndex: rowIndex,
+                endIndex: rowIndex + 1,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    cachedEvents = null;
+    lastFetchTime = 0;
+
+    res.json({ success: true, message: "Event deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
+});
+
 // ─── POST /events ─────────────────────────────────────────────────────────────
 app.post(
   "/events",
@@ -368,6 +450,72 @@ app.get("/events", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error fetching events");
+  }
+});
+
+// ─── GET /events/by-slug/:slug ─────────────────────────────────────────────────
+// Looks up a single event by its URL slug (derived from the English title).
+// If multiple events share the same slug, the eventId is appended for
+// disambiguation (?eid=...) — but in practice this is rare since titles differ.
+app.get("/events/by-slug/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { eid } = req.query;
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Events!A2:Q",
+    });
+
+    const rows = response.data.values || [];
+
+    // Find all rows whose slug matches
+    const matches = rows.filter((row) => buildSlugForRow(row) === slug);
+
+    if (matches.length === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    let matchedRow = matches[0];
+
+    if (matches.length > 1) {
+      // Multiple events share this slug — disambiguate using eventId if provided
+      if (eid) {
+        const exact = matches.find((row) => (row[0] || "").trim() === eid.trim());
+        if (exact) matchedRow = exact;
+      }
+    }
+
+    res.json(matchedRow);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Error fetching event by slug" });
+  }
+});
+
+// ─── GET /events/slugs ──────────────────────────────────────────────────────────
+// Returns a lightweight list of { eventId, slug, titleEn, status } for all
+// events — useful for the frontend to build links without fetching full rows.
+app.get("/events/slugs", async (req, res) => {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Events!A2:Q",
+    });
+
+    const rows = response.data.values || [];
+
+    const list = rows.map((row) => ({
+      eventId: row[0],
+      slug: buildSlugForRow(row),
+      titleEn: row[1],
+      status: (row[15] || "").trim().toLowerCase(),
+    }));
+
+    res.json(list);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Error fetching event slugs" });
   }
 });
 
