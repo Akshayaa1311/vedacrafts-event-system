@@ -14,7 +14,17 @@ const streamifier = require("streamifier");
 const cloudinary = require("./config/cloudinary");
 
 // ─── BREVO SETUP ──────────────────────────────────────────────────────────────
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
+let otpStore = {};
+
+// Configure API key
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+// Email API instance
+const brevoEmail = new SibApiV3Sdk.TransactionalEmailsApi();
 // ──────────────────────────────────────────────────────────────────────────────
 
 const app = express();
