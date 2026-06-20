@@ -427,33 +427,6 @@ app.post("/add-event", async (req, res) => {
   }
 });
 
-// --- TEST EMAIL ROUTE ---
-app.get("/test-email", async (req, res) => {
-  try {
-    // simple protection
-    if (req.query.key !== "admin123") {
-      return res.status(403).send("Unauthorized");
-    }
-
-    const toEmail = req.query.to || "vedacraftsofficial@gmail.com";
-
-    await brevoClient.transactionalEmails.sendTransacEmail({
-      sender: {
-        name: "Vedacrafts Official",
-        email: "vedacraftsofficial@gmail.com"
-      },
-      to: [{ email: toEmail }],
-      subject: "Test Email",
-      htmlContent: "<h1>Hello from Brevo</h1>"
-    });
-
-    res.send("Email sent to " + toEmail);
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Failed");
-  }
-});
-
 // ─── GET /registrations ───────────────────────────────────────────────────────
 app.get("/registrations", async (req, res) => {
   try {
