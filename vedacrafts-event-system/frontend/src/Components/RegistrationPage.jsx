@@ -91,7 +91,8 @@ function RegistrationPage() {
 
     } catch (error) {
       console.log(error);
-      alert("Registration Failed ❌");
+      const backendMessage = error?.response?.data?.error;
+      alert(backendMessage || "Registration Failed ❌");
     }
   };
 
@@ -170,6 +171,14 @@ function RegistrationPage() {
             </div>
 
             <div className="bg-white rounded-3xl shadow-lg border border-[#e6dcc6] p-5 md:p-8 mt-5 md:mt-6">
+
+              {/* Registration Rule Notice */}
+              <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+                ⚠️{" "}
+                {i18n.language === "ta"
+                  ? "ஒரு நபர் இந்த நிகழ்விற்கு ஒரே ஒரு முறை மட்டுமே (ஒரே பெயர், மின்னஞ்சல் அல்லது மொபைல் எண் மூலம்) பதிவு செய்ய முடியும். மீண்டும் பதிவு செய்ய முயற்சித்தால் நிராகரிக்கப்படும்."
+                  : "Each person can register only once for this event (using the same name, email, or mobile number). Duplicate registrations will be rejected — please double-check your details before submitting."}
+              </div>
 
               <form className="space-y-5" onSubmit={handleSubmit}>
 
