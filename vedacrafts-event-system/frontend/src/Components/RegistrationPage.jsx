@@ -176,7 +176,7 @@ function RegistrationPage() {
               <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
                 ⚠️{" "}
                 {i18n.language === "ta"
-                  ? "ஒரு நபர் இந்த நிகழ்விற்கு ஒரே ஒரு முறை மட்டுமே (ஒரே பெயர், மின்னஞ்சல் அல்லது மொபைல் எண் மூலம்) பதிவு செய்ய முடியும். மீண்டும் பதிவு செய்ய முயற்சித்தால் நிராகரிக்கப்படும்."
+                  ? "ஒரு நபர் இந்த நிகழ்விற்கு ஒரே ஒரு முறை மட்டும் பதிவு செய்ய முடியும் (ஒரே பெயர், மின்னஞ்சல் அல்லது மொபைல் எண்ணுடன்). மீண்டும் பதிவு செய்ய முயற்சித்தால் நிராகரிக்கப்படும் — சமர்ப்பிக்கும் முன் உங்கள் விவரங்களை சரிபார்க்கவும்."
                   : "Each person can register only once for this event (using the same name, email, or mobile number). Duplicate registrations will be rejected — please double-check your details before submitting."}
               </div>
 

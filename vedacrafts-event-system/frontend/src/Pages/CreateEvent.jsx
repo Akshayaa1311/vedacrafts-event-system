@@ -234,11 +234,44 @@ function CreateEvent() {
               className="w-full border rounded-xl px-4 py-3"
             >
               <option value="">Select District</option>
-              <option>Chennai</option>
-              <option>Coimbatore</option>
-              <option>Madurai</option>
-              <option>Salem</option>
-              <option>Trichy</option>
+<option>Ariyalur</option>
+<option>Chengalpattu</option>
+<option>Chennai</option>
+<option>Coimbatore</option>
+<option>Cuddalore</option>
+<option>Dharmapuri</option>
+<option>Dindigul</option>
+<option>Erode</option>
+<option>Kallakurichi</option>
+<option>Kancheepuram</option>
+<option>Kanniyakumari</option>
+<option>Karur</option>
+<option>Krishnagiri</option>
+<option>Madurai</option>
+<option>Mayiladuthurai</option>
+<option>Nagapattinam</option>
+<option>Namakkal</option>
+<option>Nilgiris</option>
+<option>Perambalur</option>
+<option>Pudukkottai</option>
+<option>Ramanathapuram</option>
+<option>Ranipet</option>
+<option>Salem</option>
+<option>Sivaganga</option>
+<option>Tenkasi</option>
+<option>Thanjavur</option>
+<option>Theni</option>
+<option>Thoothukudi</option>
+<option>Tiruchirappalli</option>
+<option>Tirunelveli</option>
+<option>Tirupathur</option>
+<option>Tiruppur</option>
+<option>Tiruvallur</option>
+<option>Tiruvannamalai</option>
+<option>Tiruvarur</option>
+<option>Vellore</option>
+<option>Viluppuram</option>
+<option>Virudhunagar</option>
             </select>
 
             {/* DEADLINE */}
