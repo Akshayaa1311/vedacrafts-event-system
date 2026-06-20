@@ -12,6 +12,7 @@ function Events() {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -84,6 +85,24 @@ function Events() {
       await fetchEvents();
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const handleDelete = async (eventId, eventTitle) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${eventTitle}"? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(eventId);
+    try {
+      await axios.delete(`${API_URL}/events/${eventId}`);
+      setEvents((prev) => prev.filter((e) => e[0] !== eventId));
+    } catch (err) {
+      console.log(err);
+      alert("Failed to delete event. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -174,10 +193,38 @@ function Events() {
           {filteredEvents.map((event) => (
             <div
               key={event[0]}
-              className="bg-[#eef5ea] rounded-[24px] md:rounded-[30px] p-5 md:p-8 border border-[#dce8d5]"
+              className="bg-[#eef5ea] rounded-[24px] md:rounded-[30px] p-5 md:p-8 border border-[#dce8d5] relative"
             >
+              {/* Delete icon — top right corner */}
+              <button
+                type="button"
+                onClick={() => handleDelete(event[0], event[1])}
+                disabled={deletingId === event[0]}
+                title="Delete Event"
+                className="absolute top-4 right-4 md:top-5 md:right-5 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow hover:bg-red-50 text-red-600 disabled:opacity-50 transition"
+              >
+                {deletingId === event[0] ? (
+                  <span className="text-xs">...</span>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                )}
+              </button>
+
               {/* Top section: image + info */}
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pr-10">
                 {event[16] && (
                   <img
                     src={event[16]}
