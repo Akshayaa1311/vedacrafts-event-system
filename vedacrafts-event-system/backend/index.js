@@ -379,7 +379,39 @@ app.post("/add-event", async (req, res) => {
   } = req.body;
 
   try {
-    // 1. Append data to Google Sheets
+    // 1. Check for duplicate registration (same email/phone/name for SAME event)
+    const existing = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Registrations!A:K",
+    });
+
+    const existingRows = existing.data.values || [];
+
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const normalizedPhone = (phone || "").trim();
+    const normalizedName = (name || "").trim().toLowerCase();
+
+    const isDuplicate = existingRows.some((row) => {
+      const rowEventId = (row[0] || "").trim();
+      const rowName = (row[2] || "").trim().toLowerCase();
+      const rowPhone = (row[3] || "").trim();
+      const rowEmail = (row[4] || "").trim().toLowerCase();
+
+      return (
+        rowEventId === (eventId || "").trim() &&
+        (rowEmail === normalizedEmail ||
+          rowPhone === normalizedPhone ||
+          rowName === normalizedName)
+      );
+    });
+
+    if (isDuplicate) {
+      return res.status(409).json({
+        error: "You have already registered for this event using this name, email, or phone number.",
+      });
+    }
+
+    // 2. Append data to Google Sheets
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "Registrations!A:K",
@@ -393,7 +425,7 @@ app.post("/add-event", async (req, res) => {
       },
     });
 
-    // 2. Send Email via Brevo
+    // 3. Send Email via Brevo
     try {
       await brevoClient.transactionalEmails.sendTransacEmail({
         sender: { name: "Vedacrafts Official", email: "vedacraftsofficial@gmail.com" },
