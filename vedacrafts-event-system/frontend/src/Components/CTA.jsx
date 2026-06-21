@@ -1,34 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
-
-import { API_URL } from "../config";
+import { usePublishedEvent } from "../hooks/usePublishedEvent";
 
 function CTA() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [event, setEvent] = useState(null);
-
-  useEffect(() => { fetchEvent(); }, []);
-
-  const fetchEvent = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/events`);
-      const rows = res.data;
-      if (rows.length > 0) {
-        const latest = rows[rows.length - 1];
-        setEvent({
-          eventId: latest[0],
-          seats: latest[8],
-          deadline: latest[10],
-          status: latest[15],
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const { event } = usePublishedEvent();
 
   const isRegistrationClosed = () => {
     if (event?.status === "closed") return true;

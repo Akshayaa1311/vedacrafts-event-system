@@ -2,44 +2,13 @@ import Nav from "./Nav";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { usePublishedEvent } from "../hooks/usePublishedEvent";
 
 import { API_URL } from "../config";
 
 function RegistrationPage() {
   const { t, i18n } = useTranslation();
-  const [event, setEvent] = useState(null);
-
-  useEffect(() => {
-    fetchEvent();
-  }, []);
-
-  const fetchEvent = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/events`);
-      const rows = res.data;
-
-      if (rows.length > 0) {
-        const latest = rows[rows.length - 1];
-        setEvent({
-          eventId: latest[0],
-          titleEn: latest[1],
-          titleTa: latest[2],
-          type: latest[3],
-          date: latest[4],
-          time: latest[5],
-          venueEn: latest[6],
-          venueTa: latest[7],
-          seats: latest[8],
-          district: latest[9],
-          deadline: latest[10],
-          descriptionEn: latest[11],
-          descriptionTa: latest[12],
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const { event } = usePublishedEvent();
 
   const [name, setName]                 = useState("");
   const [phone, setPhone]               = useState("");
@@ -65,20 +34,21 @@ function RegistrationPage() {
     if (!name.trim()) { alert("Please enter your name"); return; }
     if (!/^\d{10}$/.test(phone)) { alert("Phone number must be exactly 10 digits"); return; }
     if (!/\S+@\S+\.\S+/.test(email)) { alert("Please enter a valid email"); return; }
-    if (!district || district === `${t("selectdist")} *` || district === "Select District *") { alert("Please select your district"); return; }
+    if (!district || district === `${t("selectdist")} *` || district === "Select District *") {
+      alert("Please select your district"); return;
+    }
     if (!designation.trim()) { alert("Please enter your designation"); return; }
 
     try {
       await axios.post(`${API_URL}/add-event`, {
         name, phone, email, district, businessName,
         designation, category, stage, lookingFor,
-        eventId: event?.eventId,
+        eventId:    event?.eventId,
         eventTitle: event?.titleEn,
       });
 
       alert("Registration Successful 🎉");
-      
-      // ✅ COMPLETELY RESET ALL FORM STATES FOR THE NEXT VIEW
+
       setName("");
       setPhone("");
       setEmail("");
@@ -321,18 +291,18 @@ function RegistrationPage() {
                   </select>
                 </div>
 
-                {/* Looking For checkboxes */}
+                {/* Looking For */}
                 <div>
                   <h3 className="font-semibold mb-3 text-sm">{t("lookingfor")}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     {[
-                      ["Networking", t("networking")],
-                      ["Mentorship", t("mentorship")],
-                      ["Funding", t("funding")],
-                      ["Collaborations", t("collaboration")],
-                      ["Marketing Support", t("marketing")],
+                      ["Networking",           t("networking")],
+                      ["Mentorship",           t("mentorship")],
+                      ["Funding",              t("funding")],
+                      ["Collaborations",       t("collaboration")],
+                      ["Marketing Support",    t("marketing")],
                       ["Business Development", t("businessdevelopment")],
-                      ["All", t("all")],
+                      ["All",                  t("all")],
                     ].map(([value, label]) => (
                       <label key={value} className="flex items-center gap-2 cursor-pointer">
                         <input

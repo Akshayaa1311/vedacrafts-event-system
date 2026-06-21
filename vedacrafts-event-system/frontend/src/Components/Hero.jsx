@@ -1,51 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import axios from "axios";
-
-import { API_URL } from "../config";
+import { usePublishedEvent } from "../hooks/usePublishedEvent";
 
 function Hero() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [event, setEvent] = useState(null);
+  const { event } = usePublishedEvent();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0,
   });
-
-  useEffect(() => { fetchEvent(); }, []);
-
-  const fetchEvent = async () => {
-    try {
-      const res = await axios.get((`${API_URL}/events`));
-      const rows = res.data;
-      if (rows.length > 0) {
-        const latest = rows[rows.length - 1];
-        setEvent({
-          eventId: latest[0],
-          titleEn: latest[1],
-          titleTa: latest[2],
-          type: latest[3],
-          date: latest[4],
-          time: latest[5],
-          venueEn: latest[6],
-          venueTa: latest[7],
-          seats: latest[8],
-          district: latest[9],
-          deadline: latest[10],
-          descriptionEn: latest[11],
-          descriptionTa: latest[12],
-          speakersEn: JSON.parse(latest[13] || "[]"),
-          speakersTa: JSON.parse(latest[14] || "[]"),
-          status: latest[15],
-          banner: latest[16],
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   const isRegistrationClosed = () => {
     if (event?.status === "closed") return true;
@@ -61,8 +26,8 @@ function Hero() {
       const difference = deadline - now;
       if (difference <= 0) { clearInterval(timer); return; }
       setTimeLeft({
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        days:    Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours:   Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / (1000 * 60)) % 60),
         seconds: Math.floor((difference / 1000) % 60),
       });
@@ -128,8 +93,8 @@ function Hero() {
 
             <div className="flex items-center gap-2 md:gap-4 flex-wrap">
               {[
-                { value: timeLeft.days, label: t("days") },
-                { value: timeLeft.hours, label: t("hours") },
+                { value: timeLeft.days,    label: t("days") },
+                { value: timeLeft.hours,   label: t("hours") },
                 { value: timeLeft.minutes, label: t("mins") },
                 { value: timeLeft.seconds, label: t("secs") },
               ].map(({ value, label }) => (
@@ -177,7 +142,7 @@ function Hero() {
           </div>
         </div>
 
-        {/* RIGHT SIDE — Banner image, shown below content on mobile */}
+        {/* RIGHT SIDE — Banner */}
         <div className="w-full md:w-[55%] flex justify-center mt-4 md:mt-0">
           <img
             src={event?.banner}

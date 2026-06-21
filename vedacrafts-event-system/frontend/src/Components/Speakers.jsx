@@ -1,49 +1,27 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-
-import { API_URL } from "../config";
+import { usePublishedEvent } from "../hooks/usePublishedEvent";
 
 function Speakers() {
   const { t, i18n } = useTranslation();
-
-  const [speakers, setSpeakers] = useState([]);
+  const { event } = usePublishedEvent();
   const [currentSpeaker, setCurrentSpeaker] = useState(0);
 
-  useEffect(() => {
-    fetchSpeakers();
-  }, []);
+  const speakers = event?.speakersEn || [];
 
   useEffect(() => {
     if (speakers.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentSpeaker((prev) => (prev + 1) % speakers.length);
     }, 4000);
-
     return () => clearInterval(interval);
   }, [speakers]);
 
-  const fetchSpeakers = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/events`);
-      const rows = res.data;
-      const latest = rows[rows.length - 1];
-      const speakerData = JSON.parse(latest[13] || "[]");
-      setSpeakers(speakerData);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   return (
     <section id="speakers" className="bg-[#f7f3ed] py-12 md:py-20 px-4 md:px-6">
-      <div
-        className={`mx-auto ${
-          speakers.length === 1 ? "max-w-4xl" : "max-w-5xl"
-        }`}
-      >
+      <div className={`mx-auto ${speakers.length === 1 ? "max-w-4xl" : "max-w-5xl"}`}>
+
         {/* HEADING */}
         <div className="text-center">
           <h1 className="text-2xl md:text-4xl font-bold text-[#245c1f] font-serif">
@@ -66,10 +44,9 @@ function Speakers() {
                   transition={{ duration: 0.7 }}
                   className="bg-[#f8f5ef] rounded-[28px] md:rounded-[35px] overflow-hidden shadow-xl border border-[#e7dcc5]"
                 >
-                  {/* CARD GRID — stacks on mobile, side by side on md+ */}
                   <div className="grid grid-cols-1 md:grid-cols-2">
 
-                    {/* IMAGE — shown first on mobile */}
+                    {/* IMAGE */}
                     <div className="bg-gradient-to-br from-[#f3d35f] to-[#d4a017] flex items-center justify-center p-6 order-first md:order-last">
                       <motion.img
                         src={speakers[currentSpeaker].image}
@@ -77,26 +54,23 @@ function Speakers() {
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{
                           opacity: 1,
-                          scale:
-                            speakers.length === 1 ? [1, 1.04, 1] : 1,
-                          y:
-                            speakers.length === 1 ? [0, -8, 0] : 0,
+                          scale: speakers.length === 1 ? [1, 1.04, 1] : 1,
+                          y:     speakers.length === 1 ? [0, -8, 0]   : 0,
                         }}
                         transition={{
                           duration: speakers.length === 1 ? 2 : 0.8,
-                          repeat: speakers.length === 1 ? Infinity : 0,
+                          repeat:   speakers.length === 1 ? Infinity : 0,
                           ease: "easeInOut",
                         }}
-                        className={`
-                          w-full object-cover rounded-2xl md:rounded-3xl
-                          ${speakers.length === 1
+                        className={`w-full object-cover rounded-2xl md:rounded-3xl ${
+                          speakers.length === 1
                             ? "h-[220px] md:h-[320px]"
-                            : "h-[200px] md:h-[260px]"}
-                        `}
+                            : "h-[200px] md:h-[260px]"
+                        }`}
                       />
                     </div>
 
-                    {/* LEFT CONTENT */}
+                    {/* CONTENT */}
                     <div className="p-6 md:p-12 flex flex-col justify-center order-last md:order-first">
                       <div className="text-6xl md:text-8xl text-[#d4a017] leading-none relative -top-2 md:-top-3">
                         ❝
