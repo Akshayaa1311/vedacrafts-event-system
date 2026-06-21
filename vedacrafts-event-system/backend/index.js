@@ -426,6 +426,32 @@ app.post(
   }
 );
 
+// ─── GET /events/published ─────────────────────────────────────────────────────
+app.get("/events/published", async (req, res) => {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Events!A2:Q",
+    });
+
+    const rows = response.data.values || [];
+
+    const published = rows.filter(
+      (row) => (row[15] || "").trim().toLowerCase() === "published"
+    );
+
+    if (published.length === 0) {
+      return res.status(404).json({ error: "No published event found" });
+    }
+
+    const latest = published[published.length - 1];
+    res.json(latest);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Error fetching published event" });
+  }
+});
+
 // ─── GET /events ──────────────────────────────────────────────────────────────
 app.get("/events", async (req, res) => {
   try {
