@@ -148,7 +148,8 @@ highlights:"VedaCrafts Highlights",
 moments:"Moments from our previous event",
 vedacraftsMemories:"VEDACRAFTS MEMORIES",
 back:"Back to event details",
-registrationClosed:"Registration Closed"
+registrationClosed:"Registration Closed",
+closed:"Closed"
 
         },
       },
@@ -290,7 +291,8 @@ highlights:"வேதகிராஃப்ட்ஸ் நிகழ்வின�
 moments:"எங்களின் முந்தைய நிகழ்விலிருந்து சில தருணங்கள்",
 vedacraftsMemories:"வேதகிராஃப்ட்ஸ் நினைவுகள்",
 back:"நிகழ்வு விவரங்களுக்கு திரும்ப செல்வதற்கு",
-registrationClosed:"பதிவு மூடப்பட்டது"
+registrationClosed:"பதிவு மூடப்பட்டது",
+closed:"மூடப்பட்டது"
         },
       },
     },

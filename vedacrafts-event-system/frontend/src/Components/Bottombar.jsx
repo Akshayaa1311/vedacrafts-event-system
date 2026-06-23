@@ -66,7 +66,7 @@ function StickyRegisterBar() {
                 : {}
             }
           >
-            {isRegistrationClosed() ? "Closed" : `${t("registerNow")} →`}
+            {isRegistrationClosed() ? `${t("closed")}` : `${t("registerNow")} →`}
           </button>
 
         </div>

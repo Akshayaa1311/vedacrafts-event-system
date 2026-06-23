@@ -50,7 +50,7 @@ function CTA() {
               : {}
           }
         >
-          {isRegistrationClosed() ? "Registration Closed" : `${t("registertoday")} →`}
+          {isRegistrationClosed() ? `${t("registrationClosed")}` : `${t("registertoday")} →`}
         </button>
 
       </div>
