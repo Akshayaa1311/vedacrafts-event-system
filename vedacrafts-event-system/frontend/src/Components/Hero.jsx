@@ -128,7 +128,7 @@ function Hero() {
                   : {}
               }
             >
-              {isRegistrationClosed() ? "Registration Closed" : `${t("registerNow")} →`}
+              {isRegistrationClosed() ? `${t("registrationClosed")}` : `${t("registerNow")} →`}
             </button>
 
             <button
